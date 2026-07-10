@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Break hint toast preview (vanilla 160px width)</title>
+  <style>
+    body { margin: 0; min-height: 100vh; background: #1e1e1e; color: #ccc; font-family: "Segoe UI", sans-serif; display: grid; place-items: center; padding: 24px; }
+    .toast {
+      width: 160px;
+      min-height: 32px;
+      display: grid;
+      grid-template-columns: 6px 22px 6px 1fr 6px;
+      align-items: center;
+      padding: 8px 0;
+      background: linear-gradient(180deg, rgba(38, 28, 42, 0.94), rgba(24, 18, 30, 0.94));
+      border: 2px solid rgba(80, 60, 40, 0.95);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+    }
+    .icon { grid-column: 2; display: grid; place-items: center; }
+    .icon img { image-rendering: pixelated; width: 22px; height: 20px; }
+    .body {
+      grid-column: 4;
+      font: 9px/1.35 "Minecraft", monospace;
+      color: #d8d8d8;
+      transform: scale(0.75);
+      transform-origin: left center;
+    }
+  </style>
+</head>
+<body>
+  <div class="toast">
+    <div class="icon"><img src="toast-icon-three-triangles.png" alt="Fair loot toast icon" /></div>
+    <div class="body">This is a loot container. Every player can get loot from here. Hold sneak and break the container to break it for all players.</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "fairstructureloot",
+	"version": "${version}",
+	"name": "Fair Structure Loot",
+	"description": "Per-player instanced loot for structure containers — End elytra, ancient cities, bastions, trial chambers, and 17+ optional vanilla structure groups.",
+	"authors": [
+		"Berkle"
+	],
+	"license": "CC0-1.0",
+	"icon": "assets/fairstructureloot/icon.png",
+	"environment": "*",
+	"mixins": [
+		"fairstructureloot.mixins.json"
+	],
+	"entrypoints": {
+		"main": [
+			"net.berkle.fairstructureloot.FairStructureLootMain"
+		],
+		"client": [
+			"net.berkle.fairstructureloot.client.FairStructureLootClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.2",
+		"minecraft": "~26.1.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

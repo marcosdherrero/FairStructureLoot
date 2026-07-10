@@ -1,0 +1,32 @@
+# Gradle / Loom
+.gradle/
+build/
+out/
+bin/
+
+# Local run (Fabric Loom)
+run/
+logs/
+
+# Accidental extract at repo root (not src/main/java/net/...)
+/net/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
+*.launch
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs / crash reports
+*.log
+crash-reports/
