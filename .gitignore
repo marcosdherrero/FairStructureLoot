@@ -15,9 +15,7 @@ logs/
 .idea/
 *.iml
 .vscode/
-.cursor/*
-!.cursor/rules/
-!.cursor/rules/**
+.cursor/
 *.launch
 .settings/
 .classpath

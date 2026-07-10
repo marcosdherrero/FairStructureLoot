@@ -108,8 +108,7 @@ Output JAR: `build/libs/fairstructureloot-1.0.0-Minecraft26.1.2.jar`
 ## Development
 
 - **Doc images:** `docs/assets/` (mod icon, HUD triangles). Toast icon: `docs/toast-icon-three-triangles.png`. Regenerate all: `python scripts/generate-readme-assets.py`
-- **Audit history & Cursor rules:** [FSLAudit.md](FSLAudit.md)
-- **Agent rules file:** `.cursor/rules/fairstructureloot.mdc`
+- **Audit history & Cursor rules:** [FSLAudit.md](FSLAudit.md) (agent guidance; local `.cursor/rules/` is gitignored)
 
 ## License
 
