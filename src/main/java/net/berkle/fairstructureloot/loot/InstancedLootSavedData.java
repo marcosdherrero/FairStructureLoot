@@ -135,7 +135,9 @@ public class InstancedLootSavedData extends SavedData {
 
 		if (folder.inventories.containsKey(playerId)) {
 			List<ItemStack> cached = folder.inventories.get(playerId);
-			if (InstancedLootGenerator.hasAnyItems(cached) && !InstancedLootGenerator.isCorruptedSparseRoll(lootTable, cached)) {
+			// Empty is valid: the player already took everything (e.g. End ship elytra).
+			// Only discard + re-roll sparse inventories left by the pre-1.0.1 menu bug.
+			if (!InstancedLootGenerator.isCorruptedSparseRoll(lootTable, cached)) {
 				return new OpenResult(copyToNonNullList(cached, size), false);
 			}
 			folder.inventories.remove(playerId);

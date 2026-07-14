@@ -48,12 +48,11 @@ public final class InstancedChestScanner {
 
 		for (int dx = -radius; dx <= radius; dx++) {
 			for (int dz = -radius; dz <= radius; dz++) {
-				int x = chunkX + dx;
-				int z = chunkZ + dz;
-				if (!level.getChunkSource().hasChunk(x, z)) {
+				LevelChunk chunk = level.getChunkSource().getChunkNow(chunkX + dx, chunkZ + dz);
+				if (chunk == null) {
 					continue;
 				}
-				collectFairLootEntries(level, dimension, level.getChunk(x, z), entries);
+				collectFairLootEntries(level, dimension, chunk, entries);
 			}
 		}
 		FairStructureLootNetworking.syncFairLootChests(player, entries);

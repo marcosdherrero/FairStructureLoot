@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 /** Resolves connected double-chest halves and a stable storage key for instanced loot. */
 public final class DoubleChestHelper {
@@ -31,7 +32,13 @@ public final class DoubleChestHelper {
 			return Optional.empty();
 		}
 		BlockPos partnerPos = ChestBlock.getConnectedBlockPos(chest.getBlockPos(), state);
-		BlockEntity partnerEntity = level.getBlockEntity(partnerPos);
+		// Never call Level.getBlockEntity for the partner: under C2ME that can block on
+		// getChunk → CHUNK_LOAD → scan → findPair again and stall the server thread.
+		LevelChunk partnerChunk = level.getChunkSource().getChunkNow(partnerPos.getX() >> 4, partnerPos.getZ() >> 4);
+		if (partnerChunk == null) {
+			return Optional.empty();
+		}
+		BlockEntity partnerEntity = partnerChunk.getBlockEntity(partnerPos);
 		if (!(partnerEntity instanceof ChestBlockEntity partner)) {
 			return Optional.empty();
 		}

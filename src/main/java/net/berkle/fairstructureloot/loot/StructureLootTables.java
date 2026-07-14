@@ -110,21 +110,20 @@ public final class StructureLootTables {
 
 	public static FairLootMarker markerFor(Level level, BlockEntity blockEntity) {
 
+		if (blockEntity == null) {
+
+			return FairLootMarker.NONE;
+
+		}
+
+		// resolveLootTable already covers this chest, the partner's declared table,
+		// and either half being an ancient-city center chest. Never recurse into the
+		// partner via markerFor - double-chest A<->B would StackOverflow.
 		ResourceKey<LootTable> table = resolveLootTable(blockEntity);
 
 		if (table != null && isInstanced(level, table)) {
 
 			return new FairLootMarker(true, usesPerPlayerIndicator(table));
-
-		}
-
-		if (blockEntity instanceof ChestBlockEntity chest) {
-
-			return DoubleChestHelper.findPartner(level, chest)
-
-				.map(partner -> markerFor(level, partner))
-
-				.orElse(FairLootMarker.NONE);
 
 		}
 
@@ -168,6 +167,12 @@ public final class StructureLootTables {
 
 	public static ResourceKey<LootTable> resolveLootTable(BlockEntity blockEntity) {
 
+		if (blockEntity == null) {
+
+			return null;
+
+		}
+
 		if (blockEntity instanceof VaultBlockEntity vault) {
 
 			return vault.getConfig().lootTable();
@@ -204,9 +209,18 @@ public final class StructureLootTables {
 
 		}
 
-		if (blockEntity instanceof ChestBlockEntity && blockEntity.getLevel() instanceof ServerLevel serverLevel) {
+		if (blockEntity instanceof ChestBlockEntity chest && blockEntity.getLevel() instanceof ServerLevel serverLevel) {
 
-			if (isAncientCityCenterChest(serverLevel, blockEntity)) {
+			if (isAncientCityCenterChest(serverLevel, chest)) {
+
+				return ANCIENT_CITY_CENTER;
+
+			}
+
+			// One-shot partner check only (no recursion back to this chest).
+			ChestBlockEntity partner = DoubleChestHelper.findPartner(serverLevel, chest).orElse(null);
+
+			if (partner != null && isAncientCityCenterChest(serverLevel, partner)) {
 
 				return ANCIENT_CITY_CENTER;
 
@@ -256,6 +270,12 @@ public final class StructureLootTables {
 
 	private static ResourceKey<LootTable> resolveDeclaredLootTable(BlockEntity blockEntity) {
 
+		if (blockEntity == null) {
+
+			return null;
+
+		}
+
 		if (blockEntity instanceof RandomizableContainerBlockEntity randomizable) {
 
 			ResourceKey<LootTable> table = randomizable.getLootTable();
@@ -280,6 +300,12 @@ public final class StructureLootTables {
 
 	private static SeededContainerLoot readContainerLoot(BlockEntity blockEntity) {
 
+		if (blockEntity == null) {
+
+			return null;
+
+		}
+
 		return blockEntity.components().get(DataComponents.CONTAINER_LOOT);
 
 	}
@@ -287,6 +313,12 @@ public final class StructureLootTables {
 
 
 	public static long resolveLootSeed(BlockEntity blockEntity, BlockPos pos) {
+
+		if (blockEntity == null) {
+
+			return pos.asLong();
+
+		}
 
 		if (blockEntity instanceof RandomizableContainerBlockEntity randomizable) {
 
@@ -473,6 +505,12 @@ public final class StructureLootTables {
 
 
 	public static boolean isFairLootChest(Level level, BlockEntity blockEntity) {
+
+		if (blockEntity == null) {
+
+			return false;
+
+		}
 
 		return markerFor(level, blockEntity).fairLoot();
 

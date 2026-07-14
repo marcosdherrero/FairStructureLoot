@@ -177,7 +177,7 @@ public final class LootChestBreakHandler {
 	}
 
 	private static Optional<ContainerContext> resolveContext(ServerLevel level, BlockEntity blockEntity) {
-		if (!StructureLootTables.isFairLootChest(level, blockEntity)) {
+		if (blockEntity == null || !StructureLootTables.isFairLootChest(level, blockEntity)) {
 			return Optional.empty();
 		}
 

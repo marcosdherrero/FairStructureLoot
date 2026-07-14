@@ -66,7 +66,9 @@ public final class ModServerEvents {
 
 		ServerChunkEvents.CHUNK_LOAD.register((level, chunk, generated) -> {
 			if (level instanceof ServerLevel serverLevel) {
-				InstancedChestScanner.scanChunk(serverLevel, chunk);
+				// Defer past CHUNK_LOAD so scanners never force-load chunks while C2ME/vanilla
+				// are still upgrading this chunk (see DoubleChestHelper.findPair).
+				serverLevel.getServer().execute(() -> InstancedChestScanner.scanChunk(serverLevel, chunk));
 				if (level.dimension() == Level.END) {
 					ElytraConversionHandler.scheduleChunkScan(serverLevel, chunk);
 				}

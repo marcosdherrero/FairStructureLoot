@@ -200,12 +200,11 @@ public final class ElytraConversionHandler {
 		int radius = level.getServer().getPlayerList().getViewDistance();
 		for (int dx = -radius; dx <= radius; dx++) {
 			for (int dz = -radius; dz <= radius; dz++) {
-				int x = chunkX + dx;
-				int z = chunkZ + dz;
-				if (!level.getChunkSource().hasChunk(x, z)) {
+				LevelChunk chunk = level.getChunkSource().getChunkNow(chunkX + dx, chunkZ + dz);
+				if (chunk == null) {
 					continue;
 				}
-				scanChunk(level, level.getChunk(x, z));
+				scanChunk(level, chunk);
 			}
 		}
 	}
