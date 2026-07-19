@@ -9,7 +9,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.resources.Identifier;
 
 import net.berkle.fairstructureloot.FairStructureLootMain;
-import net.berkle.fairstructureloot.client.toast.FairLootChestBreakToast;
 import net.berkle.fairstructureloot.network.BreakHintPayload;
 import net.berkle.fairstructureloot.network.MarkChestGloballyOpenedPayload;
 import net.berkle.fairstructureloot.network.MarkChestOpenedPayload;
@@ -27,18 +26,20 @@ public class FairStructureLootClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		FairLootClientInteraction.register();
 
-		// Register last after other mods' client init so this small HUD marker stays on top.
-		ClientLifecycleEvents.CLIENT_STARTED.register(client ->
+		// Register last after other mods' client init so HUD markers stay on top.
+		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
 			HudElementRegistry.addLast(
 				Identifier.fromNamespaceAndPath(FairStructureLootMain.MOD_ID, "fair_loot_indicator"),
 				new FairLootHudIndicator()
-			)
-		);
+			);
+			HudElementRegistry.addLast(
+				Identifier.fromNamespaceAndPath(FairStructureLootMain.MOD_ID, "fair_loot_break_hint"),
+				new FairLootBreakHintOverlay()
+			);
+		});
 
 		ClientPlayNetworking.registerGlobalReceiver(BreakHintPayload.TYPE, (payload, context) ->
-			context.client().execute(() ->
-				FairLootChestBreakToast.show(context.client().getToastManager(), context.client().font)
-			)
+			context.client().execute(FairLootBreakHint::show)
 		);
 
 		ClientPlayNetworking.registerGlobalReceiver(MarkFairLootChestPayload.TYPE, (payload, context) ->

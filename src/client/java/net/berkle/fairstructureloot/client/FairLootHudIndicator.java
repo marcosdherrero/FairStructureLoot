@@ -6,7 +6,14 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
-/** Green, orange, or black triangle (gray shadow) under the crosshair for fair structure loot containers. */
+/**
+ * Color-only triangle under the crosshair for fair-loot containers (none for normal chests):
+ * <ul>
+ *   <li>Green — unopened (no shared roll yet, or per-player rolls and you have not opened)</li>
+ *   <li>Yellow — shared rolls on and someone else already rolled</li>
+ *   <li>Black — you have opened this container</li>
+ * </ul>
+ */
 public final class FairLootHudIndicator implements HudElement {
 
 	private static final int CROSSHAIR_OFFSET_Y = 10;

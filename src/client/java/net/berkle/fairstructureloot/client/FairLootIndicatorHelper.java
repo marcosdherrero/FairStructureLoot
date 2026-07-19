@@ -15,15 +15,16 @@ import net.berkle.fairstructureloot.loot.StructureLootTables;
 /**
  * Resolves fair-loot HUD indicator state for the block under the crosshair.
  * Caches fair-loot detection per block position; opened-state is always fresh.
+ * Normal chests return empty (no triangle).
  */
 public final class FairLootIndicatorHelper {
 
 	public enum State {
-		/** Not opened by you (and no shared roll yet, if applicable). */
+		/** Green: no shared roll yet, or per-player mode and you have not opened. */
 		UNOPENED,
-		/** Shared roll: someone else opened; you have not seen your roll yet. */
+		/** Yellow: shared rolls on and someone else already rolled. */
 		OPENED_BY_OTHER,
-		/** You opened this container and have your roll. */
+		/** Black: you have opened this container. */
 		OPENED_BY_YOU
 	}
 

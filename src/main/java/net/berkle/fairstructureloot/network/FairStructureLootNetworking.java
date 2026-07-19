@@ -2,6 +2,8 @@ package net.berkle.fairstructureloot.network;
 
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
@@ -13,6 +15,7 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.storage.loot.LootTable;
 
 import net.berkle.fairstructureloot.loot.DoubleChestHelper;
+import net.berkle.fairstructureloot.loot.FairLootChestServerTracker;
 import net.berkle.fairstructureloot.loot.InstancedLootSavedData;
 import net.berkle.fairstructureloot.loot.LootRollModeSavedData;
 import net.berkle.fairstructureloot.loot.StructureActivationSavedData;
@@ -43,6 +46,18 @@ public final class FairStructureLootNetworking {
 		boolean fairLoot,
 		boolean perPlayerIndicator
 	) {
+		markFairLootChest(player, level, pos, fairLoot, perPlayerIndicator, null);
+	}
+
+	public static void markFairLootChest(
+		ServerPlayer player,
+		ServerLevel level,
+		BlockPos pos,
+		boolean fairLoot,
+		boolean perPlayerIndicator,
+		@Nullable ResourceKey<LootTable> lootTable
+	) {
+		FairLootChestServerTracker.set(level, pos, fairLoot, perPlayerIndicator, lootTable);
 		ServerPlayNetworking.send(
 			player,
 			new MarkFairLootChestPayload(level.dimension().identifier(), pos.immutable(), fairLoot, perPlayerIndicator)

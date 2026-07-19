@@ -23,10 +23,10 @@ import net.minecraft.world.level.storage.loot.LootTable;
 
 import net.berkle.fairstructureloot.loot.ContainerKeys;
 import net.berkle.fairstructureloot.loot.DoubleChestHelper;
+import net.berkle.fairstructureloot.loot.FairLootChestServerTracker;
 import net.berkle.fairstructureloot.loot.InstancedLootSavedData;
 import net.berkle.fairstructureloot.loot.InstancedVaultLoot;
 import net.berkle.fairstructureloot.loot.StructureLootTables;
-import net.berkle.fairstructureloot.network.FairStructureLootNetworking;
 import net.berkle.fairstructureloot.network.FairStructureLootNetworking;
 
 /**
@@ -57,11 +57,19 @@ public final class LootChestBreakHandler {
 		if (level.isClientSide() || !(level instanceof ServerLevel serverLevel)) {
 			return true;
 		}
+		// Fabric may pass a null BE; resolve from the world while the block is still present.
+		if (blockEntity == null) {
+			blockEntity = serverLevel.getBlockEntity(pos);
+		}
+
 		Optional<ContainerContext> context = resolveContext(serverLevel, blockEntity);
-		if (context.isEmpty()) {
+		boolean tracked = FairLootChestServerTracker.isFairLoot(serverLevel, pos);
+		if (context.isEmpty() && !tracked) {
 			return true;
 		}
-		if (player instanceof ServerPlayer serverPlayer && !serverPlayer.isCrouching()) {
+
+		// Hold Shift to break — isCrouching() alone is wrong for toggle-sneak / forced crouch.
+		if (player instanceof ServerPlayer serverPlayer && !serverPlayer.isShiftKeyDown()) {
 			long tick = serverLevel.getGameTime();
 			Long lastHint = LAST_HINT_TICK.get(serverPlayer.getUUID());
 			if (lastHint == null || tick - lastHint >= HINT_COOLDOWN_TICKS) {
@@ -70,9 +78,15 @@ public final class LootChestBreakHandler {
 			}
 			return false;
 		}
-		PENDING_CONTAINER_KEY.set(ContainerKeys.containerKey(serverLevel, context.get().storagePos()));
-		if (player instanceof ServerPlayer serverPlayer) {
-			PENDING_BREAKING_PLAYER.set(serverPlayer);
+
+		if (context.isEmpty()) {
+			context = resolveContextFromTracker(serverLevel, pos, blockEntity);
+		}
+		if (context.isPresent()) {
+			PENDING_CONTAINER_KEY.set(ContainerKeys.containerKey(serverLevel, context.get().storagePos()));
+			if (player instanceof ServerPlayer serverPlayer) {
+				PENDING_BREAKING_PLAYER.set(serverPlayer);
+			}
 		}
 		return true;
 	}
@@ -85,7 +99,13 @@ public final class LootChestBreakHandler {
 		if (containerKey == null || level.isClientSide() || !(level instanceof ServerLevel serverLevel)) {
 			return;
 		}
+		if (blockEntity == null) {
+			blockEntity = serverLevel.getBlockEntity(pos);
+		}
 		Optional<ContainerContext> context = resolveContext(serverLevel, blockEntity);
+		if (context.isEmpty()) {
+			context = resolveContextFromTracker(serverLevel, pos, blockEntity);
+		}
 		if (context.isEmpty()) {
 			return;
 		}
@@ -131,6 +151,9 @@ public final class LootChestBreakHandler {
 		ContainerContext context = knownContext != null
 			? knownContext
 			: resolveContext(level, blockEntity).orElse(null);
+		if (context == null && blockEntity != null) {
+			context = resolveContextFromTracker(level, blockEntity.getBlockPos(), blockEntity).orElse(null);
+		}
 		if (context == null) {
 			return;
 		}
@@ -177,12 +200,23 @@ public final class LootChestBreakHandler {
 	}
 
 	private static Optional<ContainerContext> resolveContext(ServerLevel level, BlockEntity blockEntity) {
-		if (blockEntity == null || !StructureLootTables.isFairLootChest(level, blockEntity)) {
+		if (blockEntity == null) {
 			return Optional.empty();
 		}
 
 		BlockPos pos = blockEntity.getBlockPos();
 		ResourceKey<LootTable> lootTable = StructureLootTables.resolveLootTable(blockEntity);
+		boolean fairFromTable = StructureLootTables.isFairLootChest(level, blockEntity);
+		if (!fairFromTable) {
+			ResourceKey<LootTable> trackedTable = FairLootChestServerTracker.lootTable(level, pos);
+			if (trackedTable != null && StructureLootTables.isInstanced(level, trackedTable)) {
+				lootTable = trackedTable;
+				fairFromTable = true;
+			} else if (!FairLootChestServerTracker.isFairLoot(level, pos)) {
+				return Optional.empty();
+			}
+		}
+
 		long lootSeed;
 		int size;
 		BlockPos storagePos;
@@ -195,7 +229,10 @@ public final class LootChestBreakHandler {
 			if (pair.isPresent()) {
 				DoubleChestHelper.ChestPair connected = pair.get();
 				storagePos = connected.storagePos();
-				lootTable = StructureLootTables.resolveLootTable(connected.first(), connected.second());
+				ResourceKey<LootTable> pairTable = StructureLootTables.resolveLootTable(connected.first(), connected.second());
+				if (pairTable != null) {
+					lootTable = pairTable;
+				}
 				lootSeed = StructureLootTables.resolveLootSeed(connected.first(), connected.second());
 				size = connected.containerSize();
 			} else {
@@ -216,9 +253,23 @@ public final class LootChestBreakHandler {
 			return Optional.empty();
 		}
 
+		if (lootTable == null) {
+			lootTable = FairLootChestServerTracker.lootTable(level, storagePos);
+		}
 		if (lootTable == null || !StructureLootTables.isInstanced(level, lootTable)) {
 			return Optional.empty();
 		}
 		return Optional.of(new ContainerContext(storagePos, lootTable, lootSeed, size));
+	}
+
+	private static Optional<ContainerContext> resolveContextFromTracker(
+		ServerLevel level,
+		BlockPos pos,
+		BlockEntity blockEntity
+	) {
+		if (!FairLootChestServerTracker.isFairLoot(level, pos)) {
+			return Optional.empty();
+		}
+		return resolveContext(level, blockEntity);
 	}
 }

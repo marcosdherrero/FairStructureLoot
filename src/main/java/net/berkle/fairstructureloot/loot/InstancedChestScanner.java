@@ -13,6 +13,7 @@ import java.util.List;
 
 import net.berkle.fairstructureloot.network.FairStructureLootNetworking;
 import net.berkle.fairstructureloot.network.SyncFairLootChestsPayload;
+import net.berkle.fairstructureloot.loot.StructureLootTables;
 import net.berkle.fairstructureloot.loot.StructureLootTables.FairLootMarker;
 
 /**
@@ -74,9 +75,17 @@ public final class InstancedChestScanner {
 			if (!marker.fairLoot()) {
 				continue;
 			}
+			BlockPos pos = blockEntity.getBlockPos().immutable();
+			FairLootChestServerTracker.set(
+				dimension,
+				pos,
+				true,
+				marker.perPlayerIndicator(),
+				StructureLootTables.resolveLootTable(blockEntity)
+			);
 			entries.add(new SyncFairLootChestsPayload.Entry(
 				dimension,
-				blockEntity.getBlockPos().immutable(),
+				pos,
 				marker.perPlayerIndicator()
 			));
 		}
@@ -88,6 +97,8 @@ public final class InstancedChestScanner {
 		BlockPos pos,
 		FairLootMarker marker
 	) {
+		BlockEntity blockEntity = level.getBlockEntity(pos);
+		var lootTable = StructureLootTables.resolveLootTable(blockEntity);
 		for (ServerPlayer player : level.players()) {
 			if (player.level() != level) {
 				continue;
@@ -98,7 +109,8 @@ public final class InstancedChestScanner {
 					level,
 					pos,
 					true,
-					marker.perPlayerIndicator()
+					marker.perPlayerIndicator(),
+					lootTable
 				);
 			}
 		}
