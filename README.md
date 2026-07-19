@@ -176,7 +176,7 @@ From the workspace root (shared Gradle cache):
 scripts/gradle.ps1 FairStructureLoot build
 ```
 
-Output JAR: `build/libs/fairstructureloot-1.0.0-Minecraft26.1.2.jar`
+Output JAR: `build/libs/fairstructureloot-1.0.1-Minecraft26.1.2.jar`
 
 ## Install
 

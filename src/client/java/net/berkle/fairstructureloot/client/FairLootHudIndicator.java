@@ -14,6 +14,9 @@ public final class FairLootHudIndicator implements HudElement {
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor graphics, DeltaTracker tickCounter) {
 		Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft.options.hideGui) {
+			return;
+		}
 		FairLootIndicatorHelper.fromCrosshairTarget(minecraft).ifPresent(state -> {
 			int centerX = minecraft.getWindow().getGuiScaledWidth() / 2;
 			int centerY = minecraft.getWindow().getGuiScaledHeight() / 2;

@@ -1,10 +1,10 @@
 package net.berkle.fairstructureloot.client;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 
 import net.minecraft.resources.Identifier;
 
@@ -27,10 +27,12 @@ public class FairStructureLootClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		FairLootClientInteraction.register();
 
-		HudElementRegistry.attachElementAfter(
-			VanillaHudElements.CROSSHAIR,
-			Identifier.fromNamespaceAndPath(FairStructureLootMain.MOD_ID, "fair_loot_indicator"),
-			new FairLootHudIndicator()
+		// Register last after other mods' client init so this small HUD marker stays on top.
+		ClientLifecycleEvents.CLIENT_STARTED.register(client ->
+			HudElementRegistry.addLast(
+				Identifier.fromNamespaceAndPath(FairStructureLootMain.MOD_ID, "fair_loot_indicator"),
+				new FairLootHudIndicator()
+			)
 		);
 
 		ClientPlayNetworking.registerGlobalReceiver(BreakHintPayload.TYPE, (payload, context) ->
