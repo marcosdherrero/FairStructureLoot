@@ -21,8 +21,8 @@ Each player gets their own roll when opening a fair loot container. Items you ta
 | Action | Behavior |
 |--------|----------|
 | **Open** chest, barrel, or decorated pot | Your personal inventory for that container |
-| **Break** container | Drops your remaining instanced loot (or closest online player's roll for explosions/pistons). Breaking without sneak shows a hint toast and is blocked until you sneak-break. |
-| **HUD** (client) | <img alt="Unopened" src="docs/assets/hud-green-triangle.png" style="vertical-align:middle;height:1.1em" /> Unopened · <img alt="Shared roll taken by someone else" src="docs/assets/hud-orange-triangle.png" style="vertical-align:middle;height:1.1em" /> Shared roll taken by someone else · <img alt="You opened" src="docs/assets/hud-black-triangle.png" style="vertical-align:middle;height:1.1em" /> You opened |
+| **Break** container | Drops your remaining instanced loot (or closest online player's roll for explosions/pistons). Breaking without sneak is blocked and shows an advancement-style HUD hint (slide in / hold / slide out); sneak-break destroys it for everyone. |
+| **HUD** (client) | Color-only triangles: <img alt="Unopened" src="docs/assets/hud-green-triangle.png" style="vertical-align:middle;height:1.1em" /> Unopened · <img alt="Shared roll taken by someone else" src="docs/assets/hud-orange-triangle.png" style="vertical-align:middle;height:1.1em" /> Shared roll taken by someone else · <img alt="You opened" src="docs/assets/hud-black-triangle.png" style="vertical-align:middle;height:1.1em" /> You opened · no triangle = normal chest |
 
 **Always per-player** (loot and indicator): End ship elytra barrel (`end_ship`), ancient city center chest.
 
@@ -31,8 +31,8 @@ Each player gets their own roll when opening a fair loot container. Items you ta
 Default: **random** (unique roll per player). Admins can switch to **shared** (first opener rolls; others copy).
 
 ```
-/fairstructureloot set loot random
-/fairstructureloot set loot shared
+/fairstructureloot loot random
+/fairstructureloot loot shared
 ```
 
 ### Structure coverage
@@ -49,10 +49,68 @@ Trial chambers include chests, barrels, pots, dispensers, vaults, and spawner co
 
 Archaeology brush tables are registered for some groups but only **chest/dispenser** containers use instanced loot today.
 
+```
+/fairstructureloot set <group|all> activate|deactivate
+/fairstructureloot list structures
+```
+
+When a group is **deactivated**, its containers use vanilla shared loot.
+
 ### Special conversions
 
 - **End city ships** — Elytra item frames become instanced barrels (one elytra per player) when `end_ship` is active (`end_city` controls city treasure chests only)
 - **Ancient city center** — Golden-apple center chest tracked without a vanilla loot table
+
+```
+/fairstructureloot set end_ship activate|deactivate
+/fairstructureloot set end_city activate|deactivate
+/fairstructureloot set ancient_city activate|deactivate
+```
+
+## Commands
+
+Requires **gamemaster** permission. Root: `/fairstructureloot`
+
+```
+/fairstructureloot set <group|all> activate|deactivate
+/fairstructureloot list structures
+/fairstructureloot loot <random|shared>
+```
+
+| Command | Args | Notes |
+|---------|------|-------|
+| `set` | `<group\|all> activate\|deactivate` | Toggle fair loot for one group or every registered group |
+| `list structures` | — | Print each group as `ACTIVE` / `INACTIVE` |
+| `loot` | `random\|shared` | Roll mode (default **random**) |
+
+### Structure group names (`set <name> …`)
+
+| Command name | Default |
+|--------------|---------|
+| `end_city` | ACTIVE |
+| `end_ship` | ACTIVE |
+| `ancient_city` | ACTIVE |
+| `bastion` | ACTIVE |
+| `trial_chambers` | ACTIVE |
+| `buried_treasure` | ACTIVE |
+| `stronghold` | ACTIVE |
+| `woodland_mansion` | ACTIVE |
+| `nether_fortress` | ACTIVE |
+| `shipwreck` | ACTIVE |
+| `pillager_outpost` | ACTIVE |
+| `abandoned_mineshaft` | INACTIVE |
+| `desert_pyramid` | INACTIVE |
+| `jungle_temple` | INACTIVE |
+| `igloo` | INACTIVE |
+| `ruined_portal` | INACTIVE |
+| `underwater_ruin` | INACTIVE |
+| `simple_dungeon` | INACTIVE |
+| `trail_ruins` | INACTIVE |
+| `ocean_ruins_archaeology` | INACTIVE |
+| `desert_well` | INACTIVE |
+| `village` | INACTIVE |
+
+Custom groups from the Mod API add more `set <commandName>` literals. Activation state syncs to clients on join and when admins change settings.
 
 ## How it works
 
@@ -130,22 +188,11 @@ Containers
 | **One overworld store** | All dimensions keyed in one SavedData file |
 | **Skip empty rolls** | Failed/empty generation does not create folders or dirties |
 | **Destroy cleans up** | Breaking (or air-on-unload) removes that container’s folder from SavedData |
-| **Chunk scans deferred** | Fair-loot marker sync runs after chunk load (`server.execute`) and only for loaded view-distance chunks |
+| **Chunk scans rate-limited** | Chunk loads enqueue fair-loot marker scans; a small per-tick budget processes them so world unpause cannot stall the server |
+| **Deferred join sync** | Login sync of open-chest caches and markers waits a few seconds after join so it does not fight other login work |
 | **Safe unload** | Nearby chest pair lookups use `getChunkNow` so unload never force-loads chunks |
 
 Folders stay in SavedData until the container is destroyed; they are not evicted on chunk unload. Join sync walks known folders for that player’s opened keys so long-lived worlds grow with opened loot only, not with every structure chest in the world.
-
-## Commands
-
-Requires gamemaster permission. Root: `/fairstructureloot`
-
-```
-/fairstructureloot set <group|all> activate|deactivate
-/fairstructureloot list structures
-/fairstructureloot set loot <random|shared>
-```
-
-When a group is **deactivated**, its containers use vanilla shared loot. Activation state syncs to clients on join and when admins change settings.
 
 ## Mod API
 
